@@ -1,4 +1,4 @@
--- Users Table
+
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Slots ENUM
+
 DO $$ BEGIN
     CREATE TYPE glucose_slot AS ENUM (
         'Morning (fasting)',
@@ -19,7 +19,7 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
--- Readings Table
+
 CREATE TABLE IF NOT EXISTS readings (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
