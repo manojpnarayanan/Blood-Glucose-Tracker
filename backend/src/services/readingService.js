@@ -15,20 +15,17 @@ class ReadingService {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
 
-    // Assignment Rule: Date cannot be in the future
     if (dateStr > todayStr) {
       throw new Error('Date cannot be in the future.');
     }
   }
 
   validateGlucoseValue(value) {
-    // Assignment Rule: Value is required
     if (value === undefined || value === null || value === '') {
       throw new Error('Please enter a glucose value.');
     }
 
     const num = Number(value);
-    // Assignment Rule: Value must be a whole number between 40 and 600
     if (!Number.isInteger(num) || num < 40 || num > 600) {
       throw new Error('Value must be between 40 and 600 mg/dl.');
     }
@@ -51,13 +48,12 @@ class ReadingService {
     this.validateSlot(slot);
     const validatedValue = this.validateGlucoseValue(value);
 
-    // Assignment Rule: Maximum 4 readings per day
+
     const dayCount = await readingRepository.countByDate(userId, date);
     if (dayCount >= 4) {
       throw new Error('You can add only 4 readings per day.');
     }
 
-    // Assignment Rule: Only one reading per slot per day
     const existingSlot = await readingRepository.findByUserDateAndSlot(userId, date, slot);
     if (existingSlot) {
       throw new Error(`You already have an ${slot} reading for this date.`);
@@ -81,7 +77,6 @@ class ReadingService {
     this.validateSlot(slot);
     const validatedValue = this.validateGlucoseValue(value);
 
-    // If changing slot or date, check uniqueness
     if (existingReading.date !== date || existingReading.slot !== slot) {
       const slotConflict = await readingRepository.findByUserDateAndSlot(userId, date, slot);
       if (slotConflict && slotConflict.id !== parseInt(id, 10)) {

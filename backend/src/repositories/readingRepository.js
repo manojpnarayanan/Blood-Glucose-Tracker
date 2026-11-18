@@ -1,7 +1,7 @@
 const db = require('../config/db');
 
 class ReadingRepository {
-  // Find all readings for a user on a given date (ordered by slot)
+  
   async findByUserAndDate(userId, date) {
     const query = `
       SELECT id, user_id, reading_date::text AS date, slot, glucose_value AS value, created_at, updated_at
@@ -19,7 +19,6 @@ class ReadingRepository {
     return result.rows;
   }
 
-  // Find readings in a date range for reports
   async findByUserAndDateRange(userId, startDate, endDate) {
     const query = `
       SELECT id, user_id, reading_date::text AS date, slot, glucose_value AS value, created_at
@@ -37,7 +36,7 @@ class ReadingRepository {
     return result.rows;
   }
 
-  // Check if a reading already exists for this slot on this date
+
   async findByUserDateAndSlot(userId, date, slot) {
     const query = `
       SELECT id, user_id, reading_date::text AS date, slot, glucose_value AS value
@@ -48,7 +47,7 @@ class ReadingRepository {
     return result.rows[0] || null;
   }
 
-  // Count total readings for a user on a date (max 4 per day)
+
   async countByDate(userId, date) {
     const query = `
       SELECT COUNT(*)::int AS count
@@ -59,7 +58,7 @@ class ReadingRepository {
     return result.rows[0].count;
   }
 
-  // Find single reading by id (scoped to user)
+
   async findById(id, userId) {
     const query = `
       SELECT id, user_id, reading_date::text AS date, slot, glucose_value AS value
@@ -70,7 +69,7 @@ class ReadingRepository {
     return result.rows[0] || null;
   }
 
-  // Create reading
+  
   async create({ userId, date, slot, value }) {
     const query = `
       INSERT INTO readings (user_id, reading_date, slot, glucose_value)
@@ -81,7 +80,7 @@ class ReadingRepository {
     return result.rows[0];
   }
 
-  // Update reading
+  
   async update(id, userId, { date, slot, value }) {
     const query = `
       UPDATE readings
@@ -93,7 +92,7 @@ class ReadingRepository {
     return result.rows[0];
   }
 
-  // Delete reading
+
   async delete(id, userId) {
     const query = `
       DELETE FROM readings

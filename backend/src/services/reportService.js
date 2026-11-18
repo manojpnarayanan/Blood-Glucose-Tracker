@@ -15,7 +15,6 @@ class ReportService {
     const highest = Math.max(...values);
     const lowest = Math.min(...values);
     const sum = values.reduce((acc, curr) => acc + curr, 0);
-    // Rounded to 1 decimal place
     const average = Number((sum / values.length).toFixed(1));
 
     return {
@@ -64,9 +63,8 @@ class ReportService {
   async getMonthlyPreviousReport(userId, selectedDate) {
     const [yearStr, monthStr] = selectedDate.split('-');
     const year = parseInt(yearStr, 10);
-    const month = parseInt(monthStr, 10); // 1-12
+    const month = parseInt(monthStr, 10);
 
-    // Calculate previous month and year
     let prevYear = year;
     let prevMonth = month - 1;
     if (prevMonth === 0) {
@@ -75,7 +73,6 @@ class ReportService {
     }
 
     const startDate = `${prevYear}-${String(prevMonth).padStart(2, '0')}-01`;
-    // Day 0 of the current month gives the last day of the previous month
     const lastDay = new Date(prevYear, prevMonth, 0).getDate();
     const endDate = `${prevYear}-${String(prevMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
