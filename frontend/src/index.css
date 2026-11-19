@@ -596,3 +596,71 @@ body {
   color: var(--text-muted);
   margin-bottom: 1.25rem;
 }
+/* Password Eye Icon Wrapper */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  padding-right: 2.5rem;
+}
+
+.btn-toggle-eye {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+}
+
+.btn-toggle-eye:hover {
+  color: var(--text-main);
+}
+
+/* Custom Confirmation Modal */
+.confirm-modal-card {
+  max-width: 400px;
+}
+
+.confirm-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon-danger {
+  color: var(--danger);
+}
+
+.icon-warning {
+  color: var(--warning);
+}
+
+.confirm-message {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 1rem 0 1.5rem 0;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  padding: 0.55rem 1.1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-danger:hover {
+  opacity: 0.9;
+}

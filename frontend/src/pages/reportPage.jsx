@@ -1,36 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import api from '../api/client';
+import { useState, useEffect ,useCallback} from 'react';
 import StatCard from '../components/statCard';
 import EmptyState from '../components/emptyState';
 import { Calendar, TrendingUp, TrendingDown, Activity, Hash, Clock } from 'lucide-react';
+import { reportApi } from '../api/reportApi';
 
 export default function ReportsPage() {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split('T')[0]
   );
-  const [reportType, setReportType] = useState('daily'); // 'daily' | 'mtd' | 'monthly'
+  const [reportType, setReportType] = useState('daily');
   const [reportData, setReportData] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  const fetchReport = async () => {
+    const fetchReport = useCallback(async () => {
     try {
-      setLoading(false);
-      let endpoint = '/reports/daily';
-      if (reportType === 'mtd') endpoint = '/reports/month-to-date';
-      if (reportType === 'monthly') endpoint = '/reports/monthly';
-
-      const res = await api.get(`${endpoint}?date=${selectedDate}`);
-      setReportData(res.data);
+      let data;
+      if (reportType === 'daily') data = await reportApi.getDailyReport(selectedDate);
+      if (reportType === 'mtd') data = await reportApi.getMonthToDateReport(selectedDate);
+      if (reportType === 'monthly') data = await reportApi.getMonthlyReport(selectedDate);
+      setReportData(data);
     } catch (err) {
       console.error('Failed to fetch report:', err);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [selectedDate, reportType]);
 
   useEffect(() => {
     fetchReport();
-  }, [selectedDate, reportType]);
+  }, [fetchReport]);
 
   const stats = reportData?.stats || { highest: null, lowest: null, average: null, count: 0 };
   const readings = reportData?.readings || [];

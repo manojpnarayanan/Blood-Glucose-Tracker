@@ -10,7 +10,13 @@ class AuthService {
     if (!email || !email.trim()) {
       throw new Error('Email is required.');
     }
-    if (!password || password.length < 6) {
+    if (!password || password.trim().length === 0) {
+      throw new Error('Password cannot be empty or contain only spaces.');
+    }
+    if (/\s/.test(password)) {
+      throw new Error('Password cannot contain spaces.');
+    }
+    if (password.length < 6) {
       throw new Error('Password must be at least 6 characters.');
     }
 
@@ -50,8 +56,8 @@ class AuthService {
   generateToken(user) {
     return jwt.sign(
       { id: user.id, email: user.email, name: user.name },
-      process.env.JWT_SECRET || 'sweety_jwt_secret_key_2026',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN}
     );
   }
 }

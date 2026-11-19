@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import api from '../api/client';
+import { useState, useEffect,useCallback } from 'react';
 import ReadingModal from '../components/readingModal';
-import { Calendar, Plus, Edit2, Trash2, CheckCircle2, Clock } from 'lucide-react';
+import ConfirmModal from '../components/confirmModal';
+import { Calendar, Plus, Edit2, Trash2, Clock } from 'lucide-react';
+import { readingApi } from '../api/readingApi';
 
 const SLOTS = [
   'Morning (fasting)',
@@ -10,32 +11,51 @@ const SLOTS = [
   'After dinner',
 ];
 
+const getLocalDateStr = (d = new Date()) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function DashboardPage() {
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [selectedDate, setSelectedDate] = useState(getLocalDateStr());
   const [readings, setReadings] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingReading, setEditingReading] = useState(null);
   const [errorBanner, setErrorBanner] = useState('');
 
-  const fetchReadings = async () => {
+
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [readingToDelete, setReadingToDelete] = useState(null);
+
+   const [updateConfirmOpen, setUpdateConfirmOpen] = useState(false);
+  const [pendingUpdateData, setPendingUpdateData] = useState(null);
+
+   const fetchReadings = useCallback(async () => {
     try {
-      setLoading(true);
       setErrorBanner('');
-      const res = await api.get(`/readings?date=${selectedDate}`);
-      setReadings(res.data.readings || []);
+      const data = await readingApi.getDailyReadings(selectedDate);
+      setReadings(data.readings || []);
     } catch (err) {
       setErrorBanner(err.response?.data?.error || 'Failed to load readings.');
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [selectedDate]);
 
   useEffect(() => {
     fetchReadings();
-  }, [selectedDate]);
+  }, [fetchReadings]);
+  
+  useEffect(() => {
+    window.history.pushState(null, '', window.location.href);
+    const handlePopState = () => {
+      window.history.pushState(null, '', window.location.href);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   const handleOpenAdd = (defaultSlot = null) => {
     setEditingReading(defaultSlot ? { slot: defaultSlot, date: selectedDate } : null);
@@ -49,22 +69,48 @@ export default function DashboardPage() {
 
   const handleSave = async (data) => {
     if (data.id) {
-      await api.put(`/readings/${data.id}`, data);
+    
+      setPendingUpdateData(data);
+      setUpdateConfirmOpen(true);
     } else {
-      await api.post('/readings', data);
+      await await readingApi.createReading(data);
+      fetchReadings();
+      setModalOpen(false);
     }
-    fetchReadings();
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this reading?')) return;
+  const handleRequestDelete = (reading) => {
+    setReadingToDelete(reading);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!readingToDelete) return;
     try {
-      await api.delete(`/readings/${id}`);
+      await await readingApi.deleteReading(readingToDelete.id);
+      setDeleteConfirmOpen(false);
+      setReadingToDelete(null);
       fetchReadings();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete reading.');
+      setErrorBanner(err.response?.data?.error || 'Failed to delete reading.');
+      setDeleteConfirmOpen(false);
     }
   };
+
+  const handleConfirmUpdate = async () => {
+    if (!pendingUpdateData) return;
+    try {
+      await readingApi.updateReading(pendingUpdateData.id, pendingUpdateData);
+      setUpdateConfirmOpen(false);
+      setPendingUpdateData(null);
+      setModalOpen(false);
+      fetchReadings();
+    } catch (err) {
+      setErrorBanner(err.response?.data?.error || 'Failed to update reading.');
+      setUpdateConfirmOpen(false);
+    }
+  };
+
 
   const getGlucoseStatus = (val) => {
     if (val < 70) return { label: 'Low', class: 'badge-low' };
@@ -87,7 +133,7 @@ export default function DashboardPage() {
             <input
               type="date"
               value={selectedDate}
-              max={new Date().toISOString().split('T')[0]}
+              max={getLocalDateStr()}
               onChange={(e) => setSelectedDate(e.target.value)}
             />
           </div>
@@ -109,7 +155,7 @@ export default function DashboardPage() {
         <div className="progress-info">
           <span>Readings today: <strong>{readings.length} / 4</strong></span>
           {readings.length >= 4 && (
-            <span className="badge-done">All slots completed today</span>
+            <span className="badge-done">All 4 slots completed for this date</span>
           )}
         </div>
         <div className="progress-bar-bg">
@@ -159,14 +205,14 @@ export default function DashboardPage() {
                     <button
                       onClick={() => handleOpenEdit(reading)}
                       className="btn-icon"
-                      title="Edit"
+                      title="Edit Reading"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
-                      onClick={() => handleDelete(reading.id)}
+                      onClick={() => handleRequestDelete(reading)}
                       className="btn-icon btn-icon-danger"
-                      title="Delete"
+                      title="Delete Reading"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -193,6 +239,31 @@ export default function DashboardPage() {
         onSave={handleSave}
         reading={editingReading}
         currentDate={selectedDate}
+      />
+
+      <ConfirmModal
+        isOpen={deleteConfirmOpen}
+        title="Delete Reading"
+        message={`Are you sure you want to delete the ${readingToDelete?.slot} reading (${readingToDelete?.value} mg/dl) on ${readingToDelete?.date}?`}
+        confirmText="Delete"
+        isDanger={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          setDeleteConfirmOpen(false);
+          setReadingToDelete(null);
+        }}
+      />
+      <ConfirmModal
+        isOpen={updateConfirmOpen}
+        title="Confirm Update"
+        message={`Are you sure you want to update the ${pendingUpdateData?.slot} reading to ${pendingUpdateData?.value} mg/dl for ${pendingUpdateData?.date}?`}
+        confirmText="Confirm Update"
+        isDanger={false}
+        onConfirm={handleConfirmUpdate}
+        onCancel={() => {
+          setUpdateConfirmOpen(false);
+          setPendingUpdateData(null);
+        }}
       />
     </div>
   );
