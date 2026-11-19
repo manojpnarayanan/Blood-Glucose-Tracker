@@ -10,18 +10,23 @@ export default function ReportsPage() {
   );
   const [reportType, setReportType] = useState('daily');
   const [reportData, setReportData] = useState(null);
+  const [page, setPage] = useState(1);
 
     const fetchReport = useCallback(async () => {
     try {
       let data;
-      if (reportType === 'daily') data = await reportApi.getDailyReport(selectedDate);
-      if (reportType === 'mtd') data = await reportApi.getMonthToDateReport(selectedDate);
-      if (reportType === 'monthly') data = await reportApi.getMonthlyReport(selectedDate);
+      if (reportType === 'daily') data = await reportApi.getDailyReport(selectedDate, page);
+if (reportType === 'mtd') data = await reportApi.getMonthToDateReport(selectedDate, page);
+if (reportType === 'monthly') data = await reportApi.getMonthlyReport(selectedDate, page);
       setReportData(data);
     } catch (err) {
       console.error('Failed to fetch report:', err);
     }
-  }, [selectedDate, reportType]);
+  }, [selectedDate, reportType ,page]);
+
+  useEffect(() => {
+  setPage(1);
+}, [reportType, selectedDate]);
 
   useEffect(() => {
     fetchReport();
@@ -29,6 +34,7 @@ export default function ReportsPage() {
 
   const stats = reportData?.stats || { highest: null, lowest: null, average: null, count: 0 };
   const readings = reportData?.readings || [];
+  const pagination = reportData?.pagination || { totalPages: 1, currentPage: 1, totalCount: 0 };
 
   return (
     <div className="page-container">
@@ -134,6 +140,27 @@ export default function ReportsPage() {
                   ))}
                 </tbody>
               </table>
+              {pagination.totalPages > 1 && (
+  <div className="pagination-controls">
+    <button
+      className="btn-secondary"
+      onClick={() => setPage((p) => p - 1)}
+      disabled={page === 1}
+    >
+      ← Prev
+    </button>
+    <span className="page-info">
+      Page {pagination.currentPage} of {pagination.totalPages}
+    </span>
+    <button
+      className="btn-secondary"
+      onClick={() => setPage((p) => p + 1)}
+      disabled={page === pagination.totalPages}
+    >
+      Next →
+    </button>
+  </div>
+)}
             </div>
           </div>
         </>
