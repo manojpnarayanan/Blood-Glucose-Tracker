@@ -90,7 +90,6 @@ class ReadingService {
         }
       }
     }
-
     return await readingRepository.update(id, userId, {
       date,
       slot,

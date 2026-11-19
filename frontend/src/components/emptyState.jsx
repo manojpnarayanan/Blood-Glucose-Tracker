@@ -1,4 +1,3 @@
-import React from 'react';
 import { HeartPulse } from 'lucide-react';
 
 export default function EmptyState({ message, actionText, onAction }) {

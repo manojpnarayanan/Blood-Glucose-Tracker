@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 import { HeartPulse, LayoutDashboard, BarChart3, LogOut } from 'lucide-react';
